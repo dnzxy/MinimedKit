@@ -21,6 +21,15 @@ public class MinimedPumpManager: RileyLinkPumpManager {
     
     public var pluginIdentifier: String { Self.managerIdentifier }
 
+    public static var issuableAlerts: [IssuableAlert] {
+        [
+            IssuableAlert(identifier: lowRLBatteryAlertIdentifier, interruptionLevel: lowRLBatteryInterruptionLevel, title: lowRLBatteryAlertTitle),
+            IssuableAlert(identifier: pumpBatteryLowAlertIdentifier.alertIdentifier, interruptionLevel: pumpBatteryLowInterruptionLevel, title: pumpBatteryLowAlertTitle),
+            IssuableAlert(identifier: pumpReservoirEmptyAlertIdentifier.alertIdentifier, interruptionLevel: pumpReservoirEmptyInterruptionLevel, title: pumpReservoirEmptyAlertTitle),
+            IssuableAlert(identifier: pumpReservoirLowAlertIdentifier.alertIdentifier, interruptionLevel: pumpReservoirLowInterruptionLevel, title: pumpReservoirLowAlertTitle)
+        ]
+    }
+
     // Primarily used for testing
     public let dateGenerator: () -> Date
         
@@ -252,6 +261,14 @@ public class MinimedPumpManager: RileyLinkPumpManager {
         }
     }
     
+    private static let lowRLBatteryAlertIdentifier: Alert.AlertIdentifier = "lowRLBattery"
+
+    private static let lowRLBatteryInterruptionLevel: Alert.InterruptionLevel = .timeSensitive
+
+    private static var lowRLBatteryAlertTitle: String {
+        LocalizedString("Low RileyLink Battery", comment: "Title for RileyLink low battery alert")
+    }
+
     public override func device(_ device: RileyLinkDevice, didUpdateBattery level: Int) {
         let repeatInterval: TimeInterval = .hours(1)
         
@@ -263,11 +280,11 @@ public class MinimedPumpManager: RileyLinkPumpManager {
                 state.lastRileyLinkBatteryAlertDate = dateGenerator()
             }
             self.pumpDelegate.notify { delegate in
-                let identifier = Alert.Identifier(managerIdentifier: self.pluginIdentifier, alertIdentifier: "lowRLBattery")
+                let identifier = Alert.Identifier(managerIdentifier: self.pluginIdentifier, alertIdentifier: Self.lowRLBatteryAlertIdentifier)
                 let alertBody = String(format: LocalizedString("\"%1$@\" has a low battery", comment: "Format string for low battery alert body for RileyLink. (1: device name)"), device.name ?? "unnamed")
-                let content = Alert.Content(title: LocalizedString("Low RileyLink Battery", comment: "Title for RileyLink low battery alert"), body: alertBody, acknowledgeActionButtonLabel: LocalizedString("OK", comment: "Acknowledge button label for RileyLink low battery alert"))
+                let content = Alert.Content(title: Self.lowRLBatteryAlertTitle, body: alertBody, acknowledgeActionButtonLabel: LocalizedString("OK", comment: "Acknowledge button label for RileyLink low battery alert"))
                 Task {
-                    await delegate?.issueAlert(Alert(identifier: identifier, foregroundContent: content, backgroundContent: content, trigger: .immediate))
+                    await delegate?.issueAlert(Alert(identifier: identifier, foregroundContent: content, backgroundContent: content, trigger: .immediate, interruptionLevel: Self.lowRLBatteryInterruptionLevel))
                 }
             }
         }
@@ -499,11 +516,17 @@ extension MinimedPumpManager {
         return Alert.Identifier(managerIdentifier: managerIdentifier, alertIdentifier: "PumpBatteryLow")
     }
 
+    private static let pumpBatteryLowInterruptionLevel: Alert.InterruptionLevel = .timeSensitive
+
+    private static var pumpBatteryLowAlertTitle: String {
+        LocalizedString("Pump Battery Low", comment: "The notification title for a low pump battery")
+    }
+
     private var pumpBatteryLowAlert: Alert {
-        let title = LocalizedString("Pump Battery Low", comment: "The notification title for a low pump battery")
+        let title = Self.pumpBatteryLowAlertTitle
         let body = LocalizedString("Change the pump battery immediately", comment: "The notification alert describing a low pump battery")
         let content = Alert.Content(title: title, body: body, acknowledgeActionButtonLabel: LocalizedString("Dismiss", comment: "Default alert dismissal"))
-        return Alert(identifier: Self.pumpBatteryLowAlertIdentifier, foregroundContent: content, backgroundContent: content, trigger: .immediate)
+        return Alert(identifier: Self.pumpBatteryLowAlertIdentifier, foregroundContent: content, backgroundContent: content, trigger: .immediate, interruptionLevel: Self.pumpBatteryLowInterruptionLevel)
     }
     
     private var batteryReplacementDetectionThreshold: Double { 0.5 }
@@ -568,19 +591,31 @@ extension MinimedPumpManager {
         return Alert.Identifier(managerIdentifier: managerIdentifier, alertIdentifier: "PumpReservoirEmpty")
     }
 
+    private static let pumpReservoirEmptyInterruptionLevel: Alert.InterruptionLevel = .critical
+
+    private static var pumpReservoirEmptyAlertTitle: String {
+        LocalizedString("Pump Reservoir Empty", comment: "The notification title for an empty pump reservoir")
+    }
+
     private var pumpReservoirEmptyAlert: Alert {
-        let title = LocalizedString("Pump Reservoir Empty", comment: "The notification title for an empty pump reservoir")
+        let title = Self.pumpReservoirEmptyAlertTitle
         let body = LocalizedString("Change the pump reservoir now", comment: "The notification alert describing an empty pump reservoir")
         let content = Alert.Content(title: title, body: body, acknowledgeActionButtonLabel: LocalizedString("Ok", comment: "Default alert dismissal"))
-        return Alert(identifier: Self.pumpReservoirEmptyAlertIdentifier, foregroundContent: content, backgroundContent: content, trigger: .immediate)
+        return Alert(identifier: Self.pumpReservoirEmptyAlertIdentifier, foregroundContent: content, backgroundContent: content, trigger: .immediate, interruptionLevel: Self.pumpReservoirEmptyInterruptionLevel)
     }
 
     private static var pumpReservoirLowAlertIdentifier: Alert.Identifier {
         return Alert.Identifier(managerIdentifier: managerIdentifier, alertIdentifier: "PumpReservoirLow")
     }
 
+    private static let pumpReservoirLowInterruptionLevel: Alert.InterruptionLevel = .timeSensitive
+
+    private static var pumpReservoirLowAlertTitle: String {
+        LocalizedString("Pump Reservoir Low", comment: "The notification title for a low pump reservoir")
+    }
+
     private func pumpReservoirLowAlertForAmount(_ units: Double, andTimeRemaining remaining: TimeInterval?) -> Alert {
-        let title = LocalizedString("Pump Reservoir Low", comment: "The notification title for a low pump reservoir")
+        let title = Self.pumpReservoirLowAlertTitle
 
         let unitsString = NumberFormatter.localizedString(from: NSNumber(value: units), number: .decimal)
 
@@ -600,7 +635,7 @@ extension MinimedPumpManager {
         }
 
         let content = Alert.Content(title: title, body: body, acknowledgeActionButtonLabel: LocalizedString("Ok", comment: "Default alert dismissal"))
-        return Alert(identifier: Self.pumpReservoirLowAlertIdentifier, foregroundContent: content, backgroundContent: content, trigger: .immediate)
+        return Alert(identifier: Self.pumpReservoirLowAlertIdentifier, foregroundContent: content, backgroundContent: content, trigger: .immediate, interruptionLevel: Self.pumpReservoirLowInterruptionLevel)
     }
 
     private func evaluateReservoirAlerts(lastValue: ReservoirValue?, newValue: ReservoirValue, areStoredValuesContinuous: Bool) {
