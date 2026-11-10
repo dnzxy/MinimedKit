@@ -21,12 +21,12 @@ public class MinimedPumpManager: RileyLinkPumpManager {
     
     public var pluginIdentifier: String { Self.managerIdentifier }
 
-    public static var issuableAlerts: [IssuableAlert] {
+    public static var alertCatalog: [AlertCatalogEntry] {
         [
-            IssuableAlert(identifier: lowRLBatteryAlertIdentifier, interruptionLevel: lowRLBatteryInterruptionLevel, title: lowRLBatteryAlertTitle),
-            IssuableAlert(identifier: pumpBatteryLowAlertIdentifier.alertIdentifier, interruptionLevel: pumpBatteryLowInterruptionLevel, title: pumpBatteryLowAlertTitle),
-            IssuableAlert(identifier: pumpReservoirEmptyAlertIdentifier.alertIdentifier, interruptionLevel: pumpReservoirEmptyInterruptionLevel, title: pumpReservoirEmptyAlertTitle),
-            IssuableAlert(identifier: pumpReservoirLowAlertIdentifier.alertIdentifier, interruptionLevel: pumpReservoirLowInterruptionLevel, title: pumpReservoirLowAlertTitle)
+            AlertCatalogEntry(identifier: lowRLBatteryAlertIdentifier, interruptionLevel: lowRLBatteryInterruptionLevel, title: lowRLBatteryAlertTitle),
+            AlertCatalogEntry(identifier: pumpBatteryLowAlertIdentifier.alertIdentifier, interruptionLevel: pumpBatteryLowInterruptionLevel, title: pumpBatteryLowAlertTitle),
+            AlertCatalogEntry(identifier: pumpReservoirEmptyAlertIdentifier.alertIdentifier, interruptionLevel: pumpReservoirEmptyInterruptionLevel, title: pumpReservoirEmptyAlertTitle),
+            AlertCatalogEntry(identifier: pumpReservoirLowAlertIdentifier.alertIdentifier, interruptionLevel: pumpReservoirLowInterruptionLevel, title: pumpReservoirLowAlertTitle)
         ]
     }
 
